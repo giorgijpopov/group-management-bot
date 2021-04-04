@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/giorgijpopov/telebot"
-	"github.com/koyachi/go-nude"
+	"github.com/group-management-bot/nudespolice"
 )
 
 const (
@@ -16,14 +16,22 @@ const (
 
 type manager struct {
 	bot *telebot.Bot
+
+	nudePoliceman nudespolice.Policeman
 }
 
 var _ Manager = &manager{}
 
-func NewBotManager(tocken string) (*manager, error) {
-	m := &manager{}
+func NewBotManager(
+	token string,
+	nudePoliceman nudespolice.Policeman,
+) (*manager, error) {
+
+	m := &manager{
+		nudePoliceman: nudePoliceman,
+	}
 	b, err := telebot.NewBot(telebot.Settings{
-		Token:    tocken,
+		Token:    token,
 		Poller:   &telebot.LongPoller{Timeout: pollerTimeout},
 		Reporter: m.reportError,
 	})
@@ -50,7 +58,7 @@ func (m *manager) SetupHandles() {
 			return
 		}
 
-		hasNudes, err := nude.IsImageNude(img)
+		hasNudes, err := m.nudePoliceman.CheckNudesInImage(img)
 		if !m.HandleError(err) {
 			return
 		}
