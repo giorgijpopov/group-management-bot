@@ -2,18 +2,17 @@ package main
 
 import (
 	"fmt"
+	"image"
 	"log"
 	"os"
 	"time"
 
 	tb "github.com/group-management-bot/misc/telebot"
+	nude "github.com/koyachi/go-nude"
 )
 
 func main() {
 	b, err := tb.NewBot(tb.Settings{
-		// You can also set custom API URL.
-		// If field is empty it equals to "https://api.telegram.org".
-
 		Token:  os.Getenv("TELEBOT_SECRET"),
 		Poller: &tb.LongPoller{Timeout: 10 * time.Second},
 	})
@@ -23,21 +22,55 @@ func main() {
 		return
 	}
 
-	b.Handle("/hello", func(m *tb.Message) {
-		b.Send(m.Chat, fmt.Sprintf("Hello %s!", m.Sender.FirstName))
-	})
-
-	b.Handle(tb.OnText, func(m *tb.Message) {
-		b.Send(m.Chat, fmt.Sprintf("%s, I don't understand you yet", m.Sender.FirstName))
-	})
-
 	b.Handle(tb.OnPhoto, func(m *tb.Message) {
-		b.Send(m.Chat, fmt.Sprintf("%s, be careful with pictures!!!", m.Sender.FirstName))
-	})
-
-	b.Handle(tb.OnChannelPost, func (m *tb.Message) {
-		b.Send(m.Chat, fmt.Sprintf("%s, language!!!", m.Sender.FirstName))
+		reader, err := b.GetFile(&m.Photo.File)
+		if err != nil {
+			logError(err)
+			return
+		}
+		img, _, err := image.Decode(reader)
+		if err != nil {
+			logError(err)
+			return
+		}
+		hasNudes, err := nude.IsImageNude(img)
+		if err != nil {
+			logError(err)
+			return
+		}
+		if !hasNudes {
+			return
+		}
+		until := time.Now().Add(time.Minute)
+		err = b.Restrict(m.Chat, &tb.ChatMember{
+			Rights:          DicksRestrictedRights(),
+			User:            m.Sender,
+			Role:            "Admin",
+			Title:           "Title",
+			RestrictedUntil: until.Unix(),
+		})
+		if err != nil {
+			logError(err)
+			return
+		}
+		_, err = b.Send(m.Chat, fmt.Sprintf("%s, you have been restricted until %v!", m.Sender.FirstName, until.Format(time.RFC822)), &tb.SendOptions{
+			ReplyTo: m,
+		})
+		logError(err)
 	})
 
 	b.Start()
+}
+
+func logError(err error) {
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+}
+
+// DicksRestrictedRights allow to send only messages.
+func DicksRestrictedRights() tb.Rights {
+	return tb.Rights{
+		CanSendMessages: true,
+	}
 }
