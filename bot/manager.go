@@ -1,12 +1,12 @@
 package bot
 
 import (
-	"fmt"
 	"image"
 	"log"
 	"time"
 
 	"github.com/giorgijpopov/telebot"
+	"github.com/group-management-bot/court"
 	"github.com/group-management-bot/nudespolice"
 )
 
@@ -15,20 +15,26 @@ const (
 )
 
 type manager struct {
-	bot *telebot.Bot
+	bot   *telebot.Bot
+	daddy *daddy
 
 	nudePoliceman nudespolice.Policeman
+	court         court.Court
 }
 
 var _ Manager = &manager{}
 
 func NewBotManager(
 	token string,
+	daddyID string,
 	nudePoliceman nudespolice.Policeman,
+	court court.Court,
 ) (*manager, error) {
 
 	m := &manager{
 		nudePoliceman: nudePoliceman,
+		court:         court,
+		daddy:         newDaddy(daddyID),
 	}
 	b, err := telebot.NewBot(telebot.Settings{
 		Token:    token,
@@ -48,41 +54,53 @@ func (m *manager) Start() {
 
 func (m *manager) SetupHandles() {
 	m.bot.Handle(telebot.OnPhoto, func(message *telebot.Message) {
-		reader, err := m.bot.GetFile(&message.Photo.File)
+		caseMaterials, err := m.gatherCaseMaterials(message)
 		if !m.HandleError(err) {
 			return
 		}
-
-		img, _, err := image.Decode(reader)
-		if !m.HandleError(err) {
-			return
-		}
-
-		hasNudes, err := m.nudePoliceman.CheckNudesInImage(img)
-		if !m.HandleError(err) {
-			return
-		}
-
-		if !hasNudes {
-			return
-		}
-
-		until := time.Now().Add(40 * time.Second)
-		err = m.bot.Restrict(message.Chat, &telebot.ChatMember{
-			Rights:          DicksRestrictedRights(),
-			User:            message.Sender,
-			Role:            "Admin",
-			Title:           "Title",
-			RestrictedUntil: until.Unix(),
-		})
-		if !m.HandleError(err) {
-			return
-		}
-		_, err = m.bot.Send(message.Chat, fmt.Sprintf("%s, you have been restricted until %v!", message.Sender.FirstName, until.Format(time.RFC822)), &telebot.SendOptions{
-			ReplyTo: message,
-		})
-		m.HandleError(err)
+		m.HandleError(m.court.Judge(m.bot, message, caseMaterials))
 	})
+}
+
+func (m *manager) findImageInMessage(message *telebot.Message) (image.Image, error) {
+	var file telebot.File
+	switch {
+	case message.Photo != nil:
+		file = message.Photo.File
+	case message.Document != nil:
+		file = message.Document.File
+	default:
+		return nil, nil
+	}
+
+	reader, err := m.bot.GetFile(&file)
+	if err != nil {
+		return nil, err
+	}
+
+	img, _, err := image.Decode(reader)
+	if err != nil {
+		return nil, err
+	}
+	return img, nil
+}
+
+func (m *manager) gatherCaseMaterials(message *telebot.Message) (court.CaseMaterials, error) {
+	res := court.CaseMaterials{}
+
+	img, err := m.findImageInMessage(message)
+	if err != nil {
+		return court.CaseMaterials{}, err
+	}
+
+	if img != nil {
+		res.HasNudes, err = m.nudePoliceman.CheckNudesInImage(img)
+		if err != nil {
+			return court.CaseMaterials{}, err
+		}
+	}
+
+	return res, nil
 }
 
 func (m *manager) HandleError(err error) bool {
@@ -98,19 +116,12 @@ func (m *manager) reportError(err error) {
 }
 
 func (m *manager) complainToDaddy(complaint string) {
-	_, err := m.bot.Send(m.bot.Me, complaint)
+	_, err := m.bot.Send(m.daddy, complaint)
 	logError(err)
 }
 
 func logError(err error) {
 	if err != nil {
 		log.Printf("%+v\n", err)
-	}
-}
-
-// DicksRestrictedRights allow to send only messages.
-func DicksRestrictedRights() telebot.Rights {
-	return telebot.Rights{
-		CanSendMessages: true,
 	}
 }
