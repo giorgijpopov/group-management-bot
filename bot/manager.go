@@ -53,13 +53,16 @@ func (m *manager) Start() {
 }
 
 func (m *manager) SetupHandles() {
-	m.bot.Handle(telebot.OnPhoto, func(message *telebot.Message) {
-		caseMaterials, err := m.gatherCaseMaterials(message)
-		if !m.HandleError(err) {
-			return
-		}
-		m.HandleError(m.court.Judge(m.bot, message, caseMaterials))
-	})
+	m.bot.Handle(telebot.OnPhoto, m.defaultHandler)
+	m.bot.Handle(telebot.OnDocument, m.defaultHandler)
+}
+
+func (m *manager) defaultHandler(message *telebot.Message) {
+	caseMaterials, err := m.gatherCaseMaterials(message)
+	if !m.HandleError(err) {
+		return
+	}
+	m.HandleError(m.court.Judge(m.bot, message, caseMaterials))
 }
 
 func (m *manager) findImageInMessage(message *telebot.Message) (image.Image, error) {
