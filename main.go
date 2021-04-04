@@ -7,7 +7,7 @@ import (
 	"os"
 	"time"
 
-	tb "github.com/group-management-bot/misc/telebot"
+	tb "github.com/giorgijpopov/telebot"
 	nude "github.com/koyachi/go-nude"
 )
 
