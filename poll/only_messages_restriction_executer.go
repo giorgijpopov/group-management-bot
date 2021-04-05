@@ -22,7 +22,7 @@ func (p OnlyMessagesRestrictor) Description() string {
 }
 
 func (p OnlyMessagesRestrictor) Execute(bot *telebot.Bot, params ExecutorParams) error {
-	until := time.Now().Add(40 * time.Second)
+	until := time.Now().Add(p.duration)
 	err := bot.Restrict(params.SourceMsg.Chat, &telebot.ChatMember{
 		Rights:          OnlyMessagesRights(),
 		User:            params.SourceMsg.Sender,
