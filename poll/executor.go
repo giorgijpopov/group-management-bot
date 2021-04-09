@@ -16,9 +16,9 @@ type ExecutorParams struct {
 	SourceMsg *telebot.Message
 }
 
-func RunPoll(bot *telebot.Bot, sourceMsg *telebot.Message, pollDuration time.Duration, question string, executors ...OptionExecutor) error {
+func RunPoll(bot *telebot.Bot, sourceMsg *telebot.Message, pollDuration time.Duration, question string, executors ...OptionExecutor) (*time.Timer, error) {
 	if len(executors) == 0 {
-		return nil
+		return nil, nil
 	}
 
 	poll := &telebot.Poll{
@@ -32,20 +32,19 @@ func RunPoll(bot *telebot.Bot, sourceMsg *telebot.Message, pollDuration time.Dur
 
 	pollMsg, err := bot.Send(sourceMsg.Chat, poll)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	params := ExecutorParams{
 		SourceMsg: sourceMsg,
 	}
 
-	go handlePollResult(bot, pollMsg, params, pollDuration, executors...)
-	return nil
+	return time.AfterFunc(pollDuration, func() {
+		handlePollResult(bot, pollMsg, params, executors...)
+	}), nil
 }
 
-func handlePollResult(bot *telebot.Bot, pollMsg *telebot.Message, params ExecutorParams, pollDuration time.Duration, executors ...OptionExecutor) {
-	time.Sleep(pollDuration)
-
+func handlePollResult(bot *telebot.Bot, pollMsg *telebot.Message, params ExecutorParams, executors ...OptionExecutor) {
 	p, err := bot.StopPoll(pollMsg)
 	if err != nil {
 		panic(err)
