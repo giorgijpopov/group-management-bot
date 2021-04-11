@@ -10,5 +10,9 @@ func judgeTotalitarian(bot *telebot.Bot, message *telebot.Message, materials Cas
 		return nil
 	}
 
-	return poll.NewOnlyMessagesRestrictor(0).Execute(bot, poll.ExecutorParams{SourceMsg: message})
+	return poll.NewOnlyMessagesRestrictor(0).Execute(bot, poll.ExecutorParams{
+		Chat:            message.Chat,
+		User:            message.Sender,
+		SourceMessageID: message.ID,
+	})
 }

@@ -23,17 +23,17 @@ func (p OnlyMessagesRestrictor) Description() string {
 
 func (p OnlyMessagesRestrictor) Execute(bot *telebot.Bot, params ExecutorParams) error {
 	until := time.Now().Add(p.duration)
-	err := bot.Restrict(params.SourceMsg.Chat, &telebot.ChatMember{
+	err := bot.Restrict(params.Chat, &telebot.ChatMember{
 		Rights:          OnlyMessagesRights(),
-		User:            params.SourceMsg.Sender,
+		User:            params.User,
 		RestrictedUntil: until.Unix(),
 	})
 	if err != nil {
 		return err
 	}
 
-	_, err = bot.Send(params.SourceMsg.Chat, fmt.Sprintf("%s, you have been restricted until %v!", params.SourceMsg.Sender.FirstName, until.Format(time.RFC822)), &telebot.SendOptions{
-		ReplyTo: params.SourceMsg,
+	_, err = bot.Send(params.Chat, fmt.Sprintf("%s, you have been restricted until %v!", params.User.FirstName, until.Format(time.RFC822)), &telebot.SendOptions{
+		ReplyToID: params.SourceMessageID,
 	})
 	return err
 }

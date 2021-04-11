@@ -14,7 +14,15 @@ func judgeDemocratically(bot *telebot.Bot, defendantMsg *telebot.Message, materi
 	}
 
 	question := fmt.Sprintf("It seems that %s has sent some nudes. What shoud we do with him?", defendantMsg.Sender.FirstName)
-	_, err := poll.RunPoll(bot, defendantMsg, time.Minute, question,
+
+	pollExecutorParams := poll.ExecutorParams{
+		Chat:            defendantMsg.Chat,
+		User:            defendantMsg.Sender,
+		SourceMessageID: defendantMsg.ID,
+		PollDuration:    time.Minute,
+		Question:        question,
+	}
+	err := poll.RunPoll(bot, pollExecutorParams,
 		poll.NewDummyExecutor("Nothing"),
 		poll.NewOnlyMessagesRestrictor(40*time.Second),
 		poll.NewOnlyMessagesRestrictor(2*time.Minute),
