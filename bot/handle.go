@@ -16,18 +16,23 @@ func promoteTo(bot *telebot.Bot, message *telebot.Message) error {
 		return err
 	}
 
+	member, err := bot.ChatMemberOf(message.Chat, user)
+	if err != nil {
+		return err
+	}
+	if member.Role == telebot.Creator {
+		_, err := bot.Send(message.Chat, "Can't promote the owner", &telebot.SendOptions{
+			ReplyToID: message.ID,
+		})
+		return err
+	}
+
 	// do not allow promote yourself if you are restricted
-	if user.ID == message.Sender.ID {
-		member, err := bot.ChatMemberOf(message.Chat, user)
-		if err != nil {
-			return err
-		}
-		if !member.CanSendMedia {
-			_, err := bot.Send(message.Chat, "You are restricted!", &telebot.SendOptions{
-				ReplyToID: message.ID,
-			})
-			return err
-		}
+	if user.ID == message.Sender.ID && !member.CanSendMedia {
+		_, err := bot.Send(message.Chat, "You are restricted!", &telebot.SendOptions{
+			ReplyToID: message.ID,
+		})
+		return err
 	}
 
 	title := message.Payload
@@ -53,6 +58,17 @@ func promoteTo(bot *telebot.Bot, message *telebot.Message) error {
 func banFor(bot *telebot.Bot, message *telebot.Message) error {
 	user, err := extractSourceUser(bot, message)
 	if err != nil || user == nil {
+		return err
+	}
+
+	member, err := bot.ChatMemberOf(message.Chat, user)
+	if err != nil {
+		return err
+	}
+	if member.Role == telebot.Creator {
+		_, err := bot.Send(message.Chat, "Can't ban the owner", &telebot.SendOptions{
+			ReplyToID: message.ID,
+		})
 		return err
 	}
 
