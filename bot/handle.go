@@ -28,8 +28,8 @@ func promoteTo(bot *telebot.Bot, message *telebot.Message) error {
 	}
 
 	// do not allow promote yourself if you are restricted
-	if user.ID == message.Sender.ID && !member.CanSendMedia {
-		_, err := bot.Send(message.Chat, "You are restricted!", &telebot.SendOptions{
+	if user.ID == message.Sender.ID && member.Role != telebot.Administrator {
+		_, err := bot.Send(message.Chat, "You don't have admin rights!", &telebot.SendOptions{
 			ReplyToID: message.ID,
 		})
 		return err
