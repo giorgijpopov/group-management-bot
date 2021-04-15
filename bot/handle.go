@@ -16,6 +16,20 @@ func promoteTo(bot *telebot.Bot, message *telebot.Message) error {
 		return err
 	}
 
+	// do not allow promote yourself if you are restricted
+	if user.ID == message.Sender.ID {
+		member, err := bot.ChatMemberOf(message.Chat, user)
+		if err != nil {
+			return err
+		}
+		if !member.CanSendMedia {
+			_, err := bot.Send(message.Chat, "You are restricted!", &telebot.SendOptions{
+				ReplyToID: message.ID,
+			})
+			return err
+		}
+	}
+
 	title := message.Payload
 	if title == "" {
 		_, err := bot.Send(message.Chat, "Set title after the command")
