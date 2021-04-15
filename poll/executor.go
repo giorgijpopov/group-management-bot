@@ -1,6 +1,7 @@
 package poll
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/giorgijpopov/errorx"
@@ -85,6 +86,13 @@ func handlePollResult(bot *telebot.Bot, pollMsg *telebot.Message, params Executo
 			max = p.Options[i].VoterCount
 			best = executors[i]
 		}
+	}
+
+	_, err = bot.Send(params.Chat, fmt.Sprintf("Poll result option: %s", best.Description()), &telebot.SendOptions{
+		ReplyToID: pollMsg.ID,
+	})
+	if err != nil {
+		return err
 	}
 
 	err = best.Execute(bot, params)

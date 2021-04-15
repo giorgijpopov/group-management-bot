@@ -24,8 +24,8 @@ func judgeDemocratically(bot *telebot.Bot, defendantMsg *telebot.Message, materi
 	}
 	err := poll.RunPoll(bot, pollExecutorParams,
 		poll.NewDummyExecutor("Nothing"),
-		poll.NewOnlyMessagesRestrictor(40*time.Second),
-		poll.NewOnlyMessagesRestrictor(2*time.Minute),
+		poll.NewOnlyMessagesRestrictor(5*time.Minute),
+		poll.NewOnlyMessagesRestrictor(20*time.Minute),
 		poll.NewOnlyMessagesRestrictor(time.Hour),
 		poll.NewOnlyMessagesRestrictor(3*time.Hour),
 	)

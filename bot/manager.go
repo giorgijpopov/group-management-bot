@@ -55,6 +55,18 @@ func (m *manager) Start() {
 func (m *manager) SetupHandles() {
 	m.bot.Handle(telebot.OnPhoto, m.defaultHandler)
 	m.bot.Handle(telebot.OnDocument, m.defaultHandler)
+	m.bot.Handle("/promoteTo", m.promoteTo)
+	m.bot.Handle("/banFor", m.banFor)
+}
+
+func (m *manager) promoteTo(message *telebot.Message) {
+	err := promoteTo(m.bot, message)
+	m.HandleError(err)
+}
+
+func (m *manager) banFor(message *telebot.Message) {
+	err := banFor(m.bot, message)
+	m.HandleError(err)
 }
 
 func (m *manager) defaultHandler(message *telebot.Message) {
