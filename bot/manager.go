@@ -36,9 +36,22 @@ func NewBotManager(
 		court:         court,
 		daddy:         newDaddy(daddyID),
 	}
+
+	poller := &telebot.LongPoller{Timeout: pollerTimeout}
+	privateMessagesForbiddenMiddleware := telebot.NewMiddlewarePoller(poller, func(upd *telebot.Update) bool {
+		if upd.Message == nil {
+			return true
+		}
+
+		if upd.Message.Chat.Type == telebot.ChatPrivate {
+			return false
+		}
+
+		return true
+	})
 	b, err := telebot.NewBot(telebot.Settings{
 		Token:    token,
-		Poller:   &telebot.LongPoller{Timeout: pollerTimeout},
+		Poller:   privateMessagesForbiddenMiddleware,
 		Reporter: m.reportError,
 	})
 	if err != nil {
