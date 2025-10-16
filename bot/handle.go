@@ -2,11 +2,12 @@ package bot
 
 import (
 	"fmt"
+	"math/rand"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/giorgijpopov/telebot"
+	telebot "gopkg.in/telebot.v3"
 	"github.com/group-management-bot/poll"
 )
 
@@ -22,7 +23,7 @@ func promoteTo(bot *telebot.Bot, message *telebot.Message) error {
 	}
 	if member.Role == telebot.Creator {
 		_, err := bot.Send(message.Chat, "Can't promote the owner", &telebot.SendOptions{
-			ReplyToID: message.ID,
+			ReplyTo: message,
 		})
 		return err
 	}
@@ -30,7 +31,7 @@ func promoteTo(bot *telebot.Bot, message *telebot.Message) error {
 	// do not allow promote yourself if you are restricted
 	if user.ID == message.Sender.ID && member.Role != telebot.Administrator {
 		_, err := bot.Send(message.Chat, "You don't have admin rights!", &telebot.SendOptions{
-			ReplyToID: message.ID,
+			ReplyTo: message,
 		})
 		return err
 	}
@@ -67,7 +68,7 @@ func banFor(bot *telebot.Bot, message *telebot.Message) error {
 	}
 	if member.Role == telebot.Creator {
 		_, err := bot.Send(message.Chat, "Can't ban the owner", &telebot.SendOptions{
-			ReplyToID: message.ID,
+			ReplyTo: message,
 		})
 		return err
 	}
@@ -112,4 +113,30 @@ func extractSourceUser(bot *telebot.Bot, message *telebot.Message) (*telebot.Use
 		return nil, err
 	}
 	return message.ReplyTo.Sender, nil
+}
+
+func rollDice(bot *telebot.Bot, message *telebot.Message) error {
+	// Check if command is sent by specific usernames
+	username := message.Sender.Username
+	if username == "dnzonzor" || username == "q1ruwa" {
+		_, err := bot.Send(message.Chat, "Пошел нахуй!", &telebot.SendOptions{
+			ReplyTo: message,
+		})
+		return err
+	}
+
+	// Roll a simple 6-sided die
+	result := rand.Intn(6) + 1
+
+	response := fmt.Sprintf("🎲 %s rolled: %d", message.Sender.FirstName, result)
+
+	_, err := bot.Send(message.Chat, response, &telebot.SendOptions{
+		ReplyTo: message,
+	})
+	return err
+}
+
+func rollDiceEmoji(bot *telebot.Bot, message *telebot.Message) error {
+	_, err := bot.Send(message.Chat, "🎲")
+	return err
 }

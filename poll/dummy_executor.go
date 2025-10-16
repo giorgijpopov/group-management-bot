@@ -1,7 +1,7 @@
 package poll
 
 import (
-	"github.com/giorgijpopov/telebot"
+	telebot "gopkg.in/telebot.v3"
 )
 
 type DummyExecutor struct {

@@ -1,7 +1,7 @@
 package court
 
 import (
-	"github.com/giorgijpopov/telebot"
+	telebot "gopkg.in/telebot.v3"
 	"github.com/group-management-bot/poll"
 )
 

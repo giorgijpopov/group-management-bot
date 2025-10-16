@@ -1,6 +1,6 @@
 package court
 
-import "github.com/giorgijpopov/telebot"
+import telebot "gopkg.in/telebot.v3"
 
 type Regime int
 

@@ -1,8 +1,9 @@
 package court
 
 import (
-	"github.com/giorgijpopov/errorx"
-	"github.com/giorgijpopov/telebot"
+	"fmt"
+
+	telebot "gopkg.in/telebot.v3"
 )
 
 type court struct {
@@ -18,7 +19,7 @@ func NewCourt(regime Regime) *court {
 func (c *court) Judge(bot *telebot.Bot, message *telebot.Message, materials CaseMaterials) error {
 	judge, found := judgeByRegime[c.regime]
 	if !found {
-		return errorx.IllegalState.New("not existent regime %s", c.regime)
+		return fmt.Errorf("not existent regime %s", c.regime)
 	}
 
 	return judge(bot, message, materials)

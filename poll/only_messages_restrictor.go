@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/giorgijpopov/telebot"
+	telebot "gopkg.in/telebot.v3"
 )
 
 type OnlyMessagesRestrictor struct {
@@ -32,9 +32,7 @@ func (p OnlyMessagesRestrictor) Execute(bot *telebot.Bot, params ExecutorParams)
 		return err
 	}
 
-	_, err = bot.Send(params.Chat, fmt.Sprintf("%s, you have been restricted until %v!", params.User.FirstName, until.Format(time.RFC822)), &telebot.SendOptions{
-		ReplyToID: params.SourceMessageID,
-	})
+	_, err = bot.Send(params.Chat, fmt.Sprintf("%s, you have been restricted until %v!", params.User.FirstName, until.Format(time.RFC822)))
 	return err
 }
 
