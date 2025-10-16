@@ -3,7 +3,7 @@ package poll
 import (
 	"fmt"
 
-	"github.com/giorgijpopov/telebot"
+	telebot "gopkg.in/telebot.v3"
 )
 
 type Promoter struct {

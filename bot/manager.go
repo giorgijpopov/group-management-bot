@@ -5,9 +5,9 @@ import (
 	"log"
 	"time"
 
-	"github.com/giorgijpopov/telebot"
 	"github.com/group-management-bot/court"
 	"github.com/group-management-bot/nudespolice"
+	telebot "gopkg.in/telebot.v3"
 )
 
 const (
@@ -50,9 +50,9 @@ func NewBotManager(
 		return true
 	})
 	b, err := telebot.NewBot(telebot.Settings{
-		Token:    token,
-		Poller:   privateMessagesForbiddenMiddleware,
-		Reporter: m.reportError,
+		Token:   token,
+		Poller:  privateMessagesForbiddenMiddleware,
+		OnError: m.onError,
 	})
 	if err != nil {
 		return nil, err
@@ -70,24 +70,28 @@ func (m *manager) SetupHandles() {
 	m.bot.Handle(telebot.OnDocument, m.defaultHandler)
 	m.bot.Handle("/promoteTo", m.promoteTo)
 	m.bot.Handle("/banFor", m.banFor)
+	m.bot.Handle("/roll", m.roll)
 }
 
-func (m *manager) promoteTo(message *telebot.Message) {
-	err := promoteTo(m.bot, message)
-	m.HandleError(err)
+func (m *manager) promoteTo(c telebot.Context) error {
+	return promoteTo(m.bot, c.Message())
 }
 
-func (m *manager) banFor(message *telebot.Message) {
-	err := banFor(m.bot, message)
-	m.HandleError(err)
+func (m *manager) banFor(c telebot.Context) error {
+	return banFor(m.bot, c.Message())
 }
 
-func (m *manager) defaultHandler(message *telebot.Message) {
+func (m *manager) roll(c telebot.Context) error {
+	return rollDice(m.bot, c.Message())
+}
+
+func (m *manager) defaultHandler(c telebot.Context) error {
+	message := c.Message()
 	caseMaterials, err := m.gatherCaseMaterials(message)
-	if !m.HandleError(err) {
-		return
+	if err != nil {
+		return err
 	}
-	m.HandleError(m.court.Judge(m.bot, message, caseMaterials))
+	return m.court.Judge(m.bot, message, caseMaterials)
 }
 
 func (m *manager) findImageInMessage(message *telebot.Message) (image.Image, error) {
@@ -101,10 +105,11 @@ func (m *manager) findImageInMessage(message *telebot.Message) (image.Image, err
 		return nil, nil
 	}
 
-	reader, err := m.bot.GetFile(&file)
+	reader, err := m.bot.File(&file)
 	if err != nil {
 		return nil, err
 	}
+	defer reader.Close()
 
 	img, _, err := image.Decode(reader)
 	if err != nil {
@@ -131,16 +136,10 @@ func (m *manager) gatherCaseMaterials(message *telebot.Message) (court.CaseMater
 	return res, nil
 }
 
-func (m *manager) HandleError(err error) bool {
+func (m *manager) onError(err error, c telebot.Context) {
 	if err != nil {
-		m.reportError(err)
-		return false
+		m.complainToDaddy(err.Error())
 	}
-	return true
-}
-
-func (m *manager) reportError(err error) {
-	m.complainToDaddy(err.Error())
 }
 
 func (m *manager) complainToDaddy(complaint string) {

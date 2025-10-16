@@ -1,8 +1,8 @@
 package court
 
 import (
-	"github.com/giorgijpopov/telebot"
 	"github.com/group-management-bot/poll"
+	telebot "gopkg.in/telebot.v3"
 )
 
 func judgeTotalitarian(bot *telebot.Bot, message *telebot.Message, materials CaseMaterials) error {

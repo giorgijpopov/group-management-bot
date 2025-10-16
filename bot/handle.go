@@ -2,11 +2,12 @@ package bot
 
 import (
 	"fmt"
+	"math/rand"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/giorgijpopov/telebot"
+	telebot "gopkg.in/telebot.v3"
 	"github.com/group-management-bot/poll"
 )
 
@@ -22,7 +23,7 @@ func promoteTo(bot *telebot.Bot, message *telebot.Message) error {
 	}
 	if member.Role == telebot.Creator {
 		_, err := bot.Send(message.Chat, "Can't promote the owner", &telebot.SendOptions{
-			ReplyToID: message.ID,
+			ReplyTo: message,
 		})
 		return err
 	}
@@ -30,7 +31,7 @@ func promoteTo(bot *telebot.Bot, message *telebot.Message) error {
 	// do not allow promote yourself if you are restricted
 	if user.ID == message.Sender.ID && member.Role != telebot.Administrator {
 		_, err := bot.Send(message.Chat, "You don't have admin rights!", &telebot.SendOptions{
-			ReplyToID: message.ID,
+			ReplyTo: message,
 		})
 		return err
 	}
@@ -67,7 +68,7 @@ func banFor(bot *telebot.Bot, message *telebot.Message) error {
 	}
 	if member.Role == telebot.Creator {
 		_, err := bot.Send(message.Chat, "Can't ban the owner", &telebot.SendOptions{
-			ReplyToID: message.ID,
+			ReplyTo: message,
 		})
 		return err
 	}
@@ -112,4 +113,74 @@ func extractSourceUser(bot *telebot.Bot, message *telebot.Message) (*telebot.Use
 		return nil, err
 	}
 	return message.ReplyTo.Sender, nil
+}
+
+func rollDice(bot *telebot.Bot, message *telebot.Message) error {
+	// Check if command is sent by specific usernames
+	username := message.Sender.Username
+	if username == "dnzonzor" || username == "q1ruwa" {
+		_, err := bot.Send(message.Chat, "дд, анох, пошли нахуй!", &telebot.SendOptions{
+			ReplyTo: message,
+		})
+		return err
+	}
+
+	// Parse arguments: /roll [min] [max]
+	// Default: 1 to 6
+	min := 1
+	max := 6
+
+	payload := strings.TrimSpace(message.Payload)
+	if payload != "" {
+		args := strings.Fields(payload)
+
+		if len(args) == 1 {
+			// /roll 10 -> rolls 1 to 10
+			if val, err := strconv.Atoi(args[0]); err == nil && val > 0 {
+				max = val
+			} else {
+				_, err := bot.Send(message.Chat, "❌ Invalid number. Use: /roll [max] or /roll [min] [max]", &telebot.SendOptions{
+					ReplyTo: message,
+				})
+				return err
+			}
+		} else if len(args) >= 2 {
+			// /roll 1 10 -> rolls 1 to 10
+			minVal, err1 := strconv.Atoi(args[0])
+			maxVal, err2 := strconv.Atoi(args[1])
+
+			if err1 != nil || err2 != nil || minVal >= maxVal {
+				_, err := bot.Send(message.Chat, "❌ Invalid range. Use: /roll [min] [max] where min < max", &telebot.SendOptions{
+					ReplyTo: message,
+				})
+				return err
+			}
+
+			min = minVal
+			max = maxVal
+		}
+	}
+
+	// Validate range
+	if max-min > 1000000 {
+		_, err := bot.Send(message.Chat, "❌ Range too large! Maximum range is 1,000,000", &telebot.SendOptions{
+			ReplyTo: message,
+		})
+		return err
+	}
+
+	// Roll the dice
+	result := rand.Intn(max-min+1) + min
+
+	var response string
+	if min == 1 && max == 6 {
+		response = fmt.Sprintf("🎲 %s rolled: %d", message.Sender.FirstName, result)
+	} else {
+		response = fmt.Sprintf("🎲 %s rolled (%d-%d): %d", message.Sender.FirstName, min, max, result)
+	}
+
+	_, err := bot.Send(message.Chat, response, &telebot.SendOptions{
+		ReplyTo: message,
+	})
+	return err
 }

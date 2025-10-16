@@ -4,8 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/giorgijpopov/errorx"
-	"github.com/giorgijpopov/telebot"
+	telebot "gopkg.in/telebot.v3"
 )
 
 type OptionExecutor interface {
@@ -79,7 +78,7 @@ func handlePollResult(bot *telebot.Bot, pollMsg *telebot.Message, params Executo
 	max := 0
 	for i := range p.Options {
 		if i >= len(executors) {
-			return errorx.IllegalState.New("poll executor numbers (%d) less then poll options (%d)", len(executors), len(p.Options))
+			return fmt.Errorf("poll executor numbers (%d) less then poll options (%d)", len(executors), len(p.Options))
 		}
 
 		if p.Options[i].VoterCount > max {
@@ -89,7 +88,7 @@ func handlePollResult(bot *telebot.Bot, pollMsg *telebot.Message, params Executo
 	}
 
 	_, err = bot.Send(params.Chat, fmt.Sprintf("Poll result option: %s", best.Description()), &telebot.SendOptions{
-		ReplyToID: pollMsg.ID,
+		ReplyTo: pollMsg,
 	})
 	if err != nil {
 		return err

@@ -1,6 +1,6 @@
 package bot
 
-import "github.com/giorgijpopov/telebot"
+import telebot "gopkg.in/telebot.v3"
 
 type daddy struct {
 	id string
