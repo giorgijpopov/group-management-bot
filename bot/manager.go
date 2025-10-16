@@ -5,9 +5,9 @@ import (
 	"log"
 	"time"
 
-	telebot "gopkg.in/telebot.v3"
 	"github.com/group-management-bot/court"
 	"github.com/group-management-bot/nudespolice"
+	telebot "gopkg.in/telebot.v3"
 )
 
 const (

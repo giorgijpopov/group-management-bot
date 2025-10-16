@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	telebot "gopkg.in/telebot.v3"
 	"github.com/group-management-bot/poll"
+	telebot "gopkg.in/telebot.v3"
 )
 
 func judgeDemocratically(bot *telebot.Bot, defendantMsg *telebot.Message, materials CaseMaterials) error {

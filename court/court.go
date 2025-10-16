@@ -19,7 +19,7 @@ func NewCourt(regime Regime) *court {
 func (c *court) Judge(bot *telebot.Bot, message *telebot.Message, materials CaseMaterials) error {
 	judge, found := judgeByRegime[c.regime]
 	if !found {
-		return fmt.Errorf("not existent regime %s", c.regime)
+		return fmt.Errorf("not existent regime %d", c.regime)
 	}
 
 	return judge(bot, message, materials)
