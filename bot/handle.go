@@ -125,10 +125,59 @@ func rollDice(bot *telebot.Bot, message *telebot.Message) error {
 		return err
 	}
 
-	// Roll a simple 6-sided die
-	result := rand.Intn(6) + 1
+	// Parse arguments: /roll [min] [max]
+	// Default: 1 to 6
+	min := 1
+	max := 6
 
-	response := fmt.Sprintf("🎲 %s rolled: %d", message.Sender.FirstName, result)
+	payload := strings.TrimSpace(message.Payload)
+	if payload != "" {
+		args := strings.Fields(payload)
+
+		if len(args) == 1 {
+			// /roll 10 -> rolls 1 to 10
+			if val, err := strconv.Atoi(args[0]); err == nil && val > 0 {
+				max = val
+			} else {
+				_, err := bot.Send(message.Chat, "❌ Invalid number. Use: /roll [max] or /roll [min] [max]", &telebot.SendOptions{
+					ReplyTo: message,
+				})
+				return err
+			}
+		} else if len(args) >= 2 {
+			// /roll 1 10 -> rolls 1 to 10
+			minVal, err1 := strconv.Atoi(args[0])
+			maxVal, err2 := strconv.Atoi(args[1])
+
+			if err1 != nil || err2 != nil || minVal >= maxVal {
+				_, err := bot.Send(message.Chat, "❌ Invalid range. Use: /roll [min] [max] where min < max", &telebot.SendOptions{
+					ReplyTo: message,
+				})
+				return err
+			}
+
+			min = minVal
+			max = maxVal
+		}
+	}
+
+	// Validate range
+	if max-min > 1000000 {
+		_, err := bot.Send(message.Chat, "❌ Range too large! Maximum range is 1,000,000", &telebot.SendOptions{
+			ReplyTo: message,
+		})
+		return err
+	}
+
+	// Roll the dice
+	result := rand.Intn(max-min+1) + min
+
+	var response string
+	if min == 1 && max == 6 {
+		response = fmt.Sprintf("🎲 %s rolled: %d", message.Sender.FirstName, result)
+	} else {
+		response = fmt.Sprintf("🎲 %s rolled (%d-%d): %d", message.Sender.FirstName, min, max, result)
+	}
 
 	_, err := bot.Send(message.Chat, response, &telebot.SendOptions{
 		ReplyTo: message,
