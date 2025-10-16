@@ -71,7 +71,6 @@ func (m *manager) SetupHandles() {
 	m.bot.Handle("/promoteTo", m.promoteTo)
 	m.bot.Handle("/banFor", m.banFor)
 	m.bot.Handle("/roll", m.roll)
-	m.bot.Handle("/roll_t", m.rollT)
 }
 
 func (m *manager) promoteTo(c telebot.Context) error {
@@ -84,10 +83,6 @@ func (m *manager) banFor(c telebot.Context) error {
 
 func (m *manager) roll(c telebot.Context) error {
 	return rollDice(m.bot, c.Message())
-}
-
-func (m *manager) rollT(c telebot.Context) error {
-	return rollDiceEmoji(m.bot, c.Message())
 }
 
 func (m *manager) defaultHandler(c telebot.Context) error {

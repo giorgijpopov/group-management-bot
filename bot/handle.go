@@ -135,8 +135,3 @@ func rollDice(bot *telebot.Bot, message *telebot.Message) error {
 	})
 	return err
 }
-
-func rollDiceEmoji(bot *telebot.Bot, message *telebot.Message) error {
-	_, err := bot.Send(message.Chat, "🎲")
-	return err
-}
