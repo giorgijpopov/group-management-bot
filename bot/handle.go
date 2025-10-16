@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/group-management-bot/poll"
 	telebot "gopkg.in/telebot.v3"
+	"github.com/group-management-bot/poll"
 )
 
 func promoteTo(bot *telebot.Bot, message *telebot.Message) error {
@@ -119,7 +119,7 @@ func rollDice(bot *telebot.Bot, message *telebot.Message) error {
 	// Check if command is sent by specific usernames
 	username := message.Sender.Username
 	if username == "dnzonzor" || username == "q1ruwa" {
-		_, err := bot.Send(message.Chat, "Пошел нахуй!", &telebot.SendOptions{
+		_, err := bot.Send(message.Chat, "дд, анох, пошли нахуй!", &telebot.SendOptions{
 			ReplyTo: message,
 		})
 		return err
