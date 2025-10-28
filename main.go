@@ -14,7 +14,7 @@ func main() {
 		os.Getenv("TBOT_SECRET"),
 		os.Getenv("TBOT_DADDY_ID"),
 		nudespolice.NewPoliceman(),
-		court.NewCourt(court.Gogi),
+		court.NewCourt(court.Democracy),
 	)
 	if err != nil {
 		log.Printf("%+v\n", err)
