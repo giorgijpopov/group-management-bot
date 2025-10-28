@@ -66,8 +66,8 @@ func (m *manager) Start() {
 }
 
 func (m *manager) SetupHandles() {
-	m.bot.Handle(telebot.OnPhoto, m.defaultHandler)
-	m.bot.Handle(telebot.OnDocument, m.defaultHandler)
+	// m.bot.Handle(telebot.OnPhoto, m.defaultHandler)
+	// m.bot.Handle(telebot.OnDocument, m.defaultHandler)
 	m.bot.Handle("/promoteTo", m.promoteTo)
 	m.bot.Handle("/banFor", m.banFor)
 	m.bot.Handle("/roll", m.roll)

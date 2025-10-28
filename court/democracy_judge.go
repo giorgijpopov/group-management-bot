@@ -9,10 +9,6 @@ import (
 )
 
 func judgeDemocratically(bot *telebot.Bot, defendantMsg *telebot.Message, materials CaseMaterials) error {
-	if !materials.HasNudes {
-		return nil
-	}
-
 	question := fmt.Sprintf("It seems that %s has sent some nudes. What shoud we do with him?", defendantMsg.Sender.FirstName)
 
 	pollExecutorParams := poll.ExecutorParams{
